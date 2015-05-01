@@ -1,0 +1,20 @@
+.column {
+    border: 1px solid black;
+    display: inline-block;
+    vertical-align: top;
+    width: 225px;
+}
+
+.card:first-child {
+    margin-top: 0;
+}
+
+.card {
+    border: 1px solid red;
+    height: 280px;
+    width: 200px;
+    margin: -210px auto;
+    background-image: url(svg/blue.svg);
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
