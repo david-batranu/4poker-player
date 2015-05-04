@@ -1,15 +1,16 @@
 (function(){
+  window.poker = {};
 
   var COMBO_NAMES = [
-    'Chintă de culoare',
-    'Culoare',
-    'Careu',
-    'Ful',
-    'Chintă',
-    'Trei',
-    'Două perechi',
+    'Nimic',
     'O pereche',
-    'Nimic'
+    'Două perechi',
+    'Trei',
+    'Chintă',
+    'Ful',
+    'Careu',
+    'Culoare',
+    'Chintă de culoare'
   ];
 
 
@@ -39,58 +40,154 @@
     ];
   };
 
-  var get_rows = function(data){
-    return data.slice(3);
+  var Reader = function(){
+      return get_data();
   };
 
-  var get_svg_path = function(card){
-    return 'svg/' + card.sym + '/' + card.val + '.svg';
+  var Parser = function(data){
+    return {
+      stat: data[0][0],
+      message: data[0][0] === 1 ? data[1][0] : null,
+      score: data[1][0],
+      combos: function(){
+        var result = [];
+        for (var i=0;i<data[2].length; ++i){
+          result.push({
+            name: COMBO_NAMES[data[2][i][0]],
+            score: data[2][i][1]
+          });
+        }
+        return result;
+      }(),
+      rows: data.slice(3)
+    };
   };
 
-  var get_svg_url = function(card){
-    return 'url(' + get_svg_path(card) + ')';
-  };
+  var Loader = function(rows){
+    var cards = [];
 
-  var create_card = function(card){
-    var elem = document.createElement('DIV');
-    elem.className = 'card';
-    elem.style.backgroundImage = get_svg_url(card);
-    return elem;
-  };
-
-  var render_card = function(card){
-    var target = document.getElementById('c' + card.pos);
-    var html_card = create_card(card);
-    target.appendChild(html_card);
-  };
-
-  var render_row = function(row){
-    for (var i=0; i<row.length; i++){
-      var card = row[i];
-      render_card({
-        val: card[0],
-        sym: card[1],
-        pos: card[2]
-      });
+    function get_svg_path(card){
+      return 'svg/' + card.sym + '/' + card.val + '.svg';
     }
-  };
 
-  var render_rows = function(rows){
+    function get_svg_url(card){
+      return 'url(' + get_svg_path(card) + ')';
+    }
+
+    function create_card(card){
+      var elem = document.createElement('DIV');
+      elem.dataset.column = 'c' + card.pos;
+      elem.className = 'card';
+      elem.style.backgroundImage = get_svg_url(card);
+      return elem;
+    }
+
+    function create_cards(row){
+      for (var i=0; i<row.length; i++){
+        var card_info = row[i];
+        var card = create_card({
+          val: card_info[0],
+          sym: card_info[1],
+          pos: card_info[2]
+        });
+        cards.push(card);
+      }
+    }
+
     for (var row_idx=0; row_idx<rows.length; row_idx++){
-      render_row(rows[row_idx]);
+      create_cards(rows[row_idx]);
     }
+
+    return cards;
   };
 
-  var render = function(){
-    var data = get_data();
-    var rows = get_rows(data);
+  var Renderer = function(cards){
+    return {
+      cursor: -1,
+      forward: function(){
+        if (this.cursor < cards.length - 1){
+          this.cursor++;
+        }
+        var card = cards[this.cursor];
+        var target = document.getElementById(card.dataset.column);
+        target.appendChild(card);
+      },
+      back: function(){
+        if (this.cursor > -1){
+          var card = cards[this.cursor];
+          var target = document.getElementById(card.dataset.column);
+          target.removeChild(card);
+        }
 
-    render_rows(rows);
+        if (this.cursor > -1){
+          this.cursor--;
+        }
+      },
+      render: function(clear){
+        for(var i=0; i<cards.length; ++i){
+          var card = cards[i];
+          var target = document.getElementById(card.dataset.column);
+          if (clear){
+            target.removeChild(card);
+          } else {
+            target.appendChild(card);
+          }
+        }
+        if (clear){
+          this.cursor = -1;
+        } else {
+          this.cursor = cards.length - 1;
+        }
+      },
+    };
   };
 
+  function bind_buttons(renderer){
+    var start = document.getElementById('btn-start');
+    var back = document.getElementById('btn-back');
+    var forward = document.getElementById('btn-forward');
+    var end = document.getElementById('btn-end');
+
+    start.onclick = function(evt){
+      renderer.render(true);
+    };
+
+    back.onclick = function(evt){
+      renderer.back();
+    };
+
+    forward.onclick = function(evt){
+      renderer.forward();
+    };
+
+    end.onclick = function(evt){
+      renderer.render();
+    };
+
+    document.onkeydown = function(evt){
+      if (evt.keyCode === 72){
+        renderer.back();
+      } else if (evt.keyCode === 76){
+        renderer.forward();
+      } else if (evt.keyCode === 74){
+        renderer.render();
+      } else if (evt.keyCode === 75){
+        renderer.render(true);
+      }
+    };
+  }
+
+  var run = function(){
+    var data = Reader();
+    var parsed_data = Parser(data);
+    var cards = Loader(parsed_data.rows);
+    window.poker.renderer = Renderer(cards);
+    var renderer = window.poker.renderer;
+    bind_buttons(renderer);
+  };
 
   document.addEventListener("DOMContentLoaded", function(event) {
-    render();
+    run();
   });
 
 })();
