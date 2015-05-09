@@ -19,24 +19,18 @@
       [0],
       [22],
       [[5, 20], [1, 1], [1, 1], [0, 0]],
-      [
-        [1, 2, 0],
-        [0, 1, 1],
-        [2, 1, 2],
-        [1, 3, 3]
-      ],
-      [
-        [3, 3, 0],
-        [4, 2, 1],
-        [0, 3, 2],
-        [5, 3, 3]
-      ],
-      [
-        [0, 3, 0],
-        [1, 3, 1],
-        [2, 3, 2],
-        [3, 3, 3]
-      ]
+      [1, 2, 0],
+      [0, 1, 1],
+      [2, 1, 2],
+      [1, 3, 3],
+      [3, 3, 0],
+      [4, 2, 1],
+      [0, 3, 2],
+      [5, 3, 3],
+      [0, 3, 0],
+      [1, 3, 1],
+      [2, 3, 2],
+      [3, 3, 3]
     ];
   };
 
@@ -59,12 +53,12 @@
         }
         return result;
       }(),
-      rows: data.slice(3)
+      cards: data.slice(3)
     };
   };
 
-  var Loader = function(rows){
-    var cards = [];
+  var Loader = function(cards){
+    var card_elems = [];
 
     function get_svg_path(card){
       return 'svg/' + card.sym + '/' + card.val + '.svg';
@@ -82,23 +76,17 @@
       return elem;
     }
 
-    function create_cards(row){
-      for (var i=0; i<row.length; i++){
-        var card_info = row[i];
-        var card = create_card({
-          val: card_info[0],
-          sym: card_info[1],
-          pos: card_info[2]
-        });
-        cards.push(card);
-      }
+    for (var card_idx=0; card_idx<cards.length; card_idx++){
+      var card_info = cards[card_idx];
+      var card = create_card({
+        val: card_info[0],
+        sym: card_info[1],
+        pos: card_info[2]
+      });
+      card_elems.push(card);
     }
 
-    for (var row_idx=0; row_idx<rows.length; row_idx++){
-      create_cards(rows[row_idx]);
-    }
-
-    return cards;
+    return card_elems;
   };
 
   var Renderer = function(cards){
@@ -180,7 +168,7 @@
   var run = function(){
     var data = Reader();
     var parsed_data = Parser(data);
-    var cards = Loader(parsed_data.rows);
+    var cards = Loader(parsed_data.cards);
     window.poker.renderer = Renderer(cards);
     var renderer = window.poker.renderer;
     bind_buttons(renderer);
