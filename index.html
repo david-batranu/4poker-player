@@ -5,11 +5,30 @@
   <script type="text/javascript" src="poker.js"></script>
 </head>
 <body>
+  <div id="scoreboard" class="hide">
+    <div>
+      Status: <span id="status"></span>
+    </div>
+    <div id="success">
+      <div>
+        Score: <span id="score"></span>
+      </div>
+      <div>
+        Breakdown: <ul id="combos"></ul>
+      </div>
+    </div>
+    <div id="fail">
+      <div>
+        Message: <span id="message" class="fail"></span>
+      </div>
+    </div>
+  </div>
   <div class="controls">
     <button type="button" id="btn-start">&lt;&lt;</button>
     <button type="button" id="btn-back">&lt;</button>
     <button type="button" id="btn-forward">&gt;</button>
     <button type="button" id="btn-end">&gt;&gt;</button>
+    <button type="button" id="show-hide">Show</button>
   </div>
   <div class="column" id="c0">
   </div>

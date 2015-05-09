@@ -13,47 +13,78 @@
     'Chintă de culoare'
   ];
 
+  function filterMap(arr, func){
+    var retval = [];
+    for(var idx=0; idx<arr.length; ++idx){
+      var res = func(arr[idx], idx);
+      if (res){
+        retval.push(res);
+      }
+    }
+    return retval;
+  }
 
-  var get_data = function(){
-    return [
-      [0],
-      [22],
-      [[5, 20], [1, 1], [1, 1], [0, 0]],
-      [1, 2, 0],
-      [0, 1, 1],
-      [2, 1, 2],
-      [1, 3, 3],
-      [3, 3, 0],
-      [4, 2, 1],
-      [0, 3, 2],
-      [5, 3, 3],
-      [0, 3, 0],
-      [1, 3, 1],
-      [2, 3, 2],
-      [3, 3, 3]
-    ];
-  };
+  function splitArray(arr, chunksize){
+    var result = [];
+    for (var i=0, j=arr.length; i<j; i+=chunksize) {
+        result.push(arr.slice(i, i + chunksize));
+    }
+    return result;
+  }
 
-  var Reader = function(){
-      return get_data();
+  function getFileFromServer(url, doneCallback) {
+    var xhr;
+
+    xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = handleStateChange;
+    xhr.open("GET", url, true);
+    xhr.send();
+
+    function handleStateChange() {
+      if (xhr.readyState === 4) {
+        doneCallback(xhr.status == 200 ? xhr.responseText : null);
+      }
+    }
+  }
+
+  var Reader = function(path, callback){
+    getFileFromServer(path, function(content){
+      if (content){
+        return callback(content);
+      } else {
+        alert('Cannot read path');
+      }
+    });
   };
 
   var Parser = function(data){
+    var split_data = function(data){
+      var split = data.split('\n');
+      return filterMap(split, function(item){
+        return item.split(' ').map(function(i){
+          var val = parseInt(i);
+          return isNaN(val) ? i : val;
+        });
+      });
+    }(data);
     return {
-      stat: data[0][0],
-      message: data[0][0] === 1 ? data[1][0] : null,
-      score: data[1][0],
+      stat: split_data[0][0],
+      message: split_data[0][0] === 1 ? split_data[1][0] : null,
+      score: split_data[1][0],
       combos: function(){
         var result = [];
-        for (var i=0;i<data[2].length; ++i){
+        var combos = splitArray(split_data[2], 2);
+        for (var i=0;i<combos.length; ++i){
           result.push({
-            name: COMBO_NAMES[data[2][i][0]],
-            score: data[2][i][1]
+            name: COMBO_NAMES[combos[i][0]],
+            score: combos[i][1]
           });
         }
         return result;
       }(),
-      cards: data.slice(3)
+      cards: filterMap(split_data.slice(3), function(card){
+        return card[0] === "" ? false : card;
+      })
     };
   };
 
@@ -130,11 +161,52 @@
     };
   };
 
+  var Scoreboard = function(data){
+    var stat = document.getElementById('status');
+    stat.textContent = data.stat;
+    if (data.stat === 0){
+      stat.className = 'success';
+    } else {
+      stat.className = 'fail';
+    }
+
+    if (data.stat === 0){
+      var success = document.getElementById('success');
+      var score = document.getElementById('score');
+      var combos = document.getElementById('combos');
+      score.textContent = data.score;
+      for (var i=0; i<data.combos.length; ++i){
+        var combo = data.combos[i];
+        var elem = document.createElement('LI');
+        elem.textContent = combo.name + ' (' + combo.score + ')';
+        combos.appendChild(elem);
+      }
+      success.className = 'show';
+    } else {
+      var fail = document.getElementById('fail');
+      var message = document.getElementById('message');
+      message.textContent = data.message;
+      fail.className = 'show';
+    }
+  };
+
   function bind_buttons(renderer){
     var start = document.getElementById('btn-start');
     var back = document.getElementById('btn-back');
     var forward = document.getElementById('btn-forward');
     var end = document.getElementById('btn-end');
+    var show_hide = document.getElementById('show-hide');
+
+    show_hide.onclick = function(evt){
+      var scoreboard = document.getElementById('scoreboard');
+      if (evt.target.textContent === 'Show'){
+        evt.target.textContent = 'Hide';
+        scoreboard.className = 'show';
+      } else {
+        evt.target.textContent = 'Show';
+        scoreboard.className = 'hide';
+      }
+    };
 
     start.onclick = function(evt){
       renderer.render(true);
@@ -166,12 +238,14 @@
   }
 
   var run = function(){
-    var data = Reader();
-    var parsed_data = Parser(data);
-    var cards = Loader(parsed_data.cards);
-    window.poker.renderer = Renderer(cards);
-    var renderer = window.poker.renderer;
-    bind_buttons(renderer);
+    var gamefile_path = window.location.search.split('?path=')[1];
+    Reader(gamefile_path, function(data){
+      var parsed_data = Parser(data);
+      var cards = Loader(parsed_data.cards);
+      var renderer = Renderer(cards);
+      Scoreboard(parsed_data);
+      bind_buttons(renderer);
+    });
   };
 
   document.addEventListener("DOMContentLoaded", function(event) {

@@ -18,3 +18,23 @@
     background-repeat: no-repeat;
     background-size: 100%;
 }
+
+.success {
+    color: green;
+}
+
+.fail {
+    color: red;
+}
+
+#success, #fail {
+    display: none;
+}
+
+.show {
+    display: block !important;
+}
+
+.hide {
+    display: none;
+}
