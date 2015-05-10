@@ -1,5 +1,4 @@
 .column {
-    border: 1px solid black;
     display: inline-block;
     vertical-align: top;
     width: 225px;
@@ -10,7 +9,6 @@
 }
 
 .card {
-    border: 1px solid red;
     height: 280px;
     width: 200px;
     margin: -210px auto;
