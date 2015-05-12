@@ -61,7 +61,7 @@
     var split_data = function(data){
       var split = data.split('\n');
       return filterMap(split, function(item){
-        return item.split(' ').map(function(i){
+        return item.trim().split(' ').map(function(i){
           var val = parseInt(i);
           return isNaN(val) ? i : val;
         });
@@ -188,26 +188,44 @@
       message.textContent = data.message;
       fail.className = 'show';
     }
+    return {
+      toggle: function(){
+        var scoreboard = document.getElementById('scoreboard');
+        var button = document.getElementById('show-hide');
+        if (button.textContent === 'Show'){
+          button.textContent = 'Hide';
+          scoreboard.className = 'show';
+        } else {
+          button.textContent = 'Show';
+          scoreboard.className = 'hide';
+        }
+      }
+    };
   };
 
-  function bind_buttons(renderer){
+  var Keybindings = function(){
+    var params = window.location.hash.split('#')[1];
+    var bindings = {};
+    if (params){
+      bindings = JSON.parse(unescape(params.trim()));
+    }
+    return {
+      back: bindings.back || 72,
+      end: bindings.end || 74,
+      start: bindings.start || 75,
+      fwd: bindings.fwd || 76,
+      score: bindings.score || 83
+    };
+  };
+
+  function bind_buttons(renderer, scoreboard){
     var start = document.getElementById('btn-start');
     var back = document.getElementById('btn-back');
     var forward = document.getElementById('btn-forward');
     var end = document.getElementById('btn-end');
     var show_hide = document.getElementById('show-hide');
 
-    show_hide.onclick = function(evt){
-      var scoreboard = document.getElementById('scoreboard');
-      if (evt.target.textContent === 'Show'){
-        evt.target.textContent = 'Hide';
-        scoreboard.className = 'show';
-      } else {
-        evt.target.textContent = 'Show';
-        scoreboard.className = 'hide';
-      }
-    };
-
+    show_hide.onclick = scoreboard.toggle;
     start.onclick = function(evt){
       renderer.render(true);
     };
@@ -224,15 +242,21 @@
       renderer.render();
     };
 
+    var keybindings = Keybindings();
+
     document.onkeydown = function(evt){
-      if (evt.keyCode === 72){
+      if (evt.keyCode === keybindings.back){
         renderer.back();
-      } else if (evt.keyCode === 76){
+      } else if (evt.keyCode === keybindings.fwd){
         renderer.forward();
-      } else if (evt.keyCode === 74){
+      } else if (evt.keyCode === keybindings.end){
         renderer.render();
-      } else if (evt.keyCode === 75){
+      } else if (evt.keyCode === keybindings.start){
         renderer.render(true);
+      } else if (evt.keyCode === keybindings.score){
+        scoreboard.toggle();
+      } else {
+        console.log('keyCode', evt.keyCode);
       }
     };
   }
@@ -243,8 +267,8 @@
       var parsed_data = Parser(data);
       var cards = Loader(parsed_data.cards);
       var renderer = Renderer(cards);
-      Scoreboard(parsed_data);
-      bind_buttons(renderer);
+      var scoreboard = Scoreboard(parsed_data);
+      bind_buttons(renderer, scoreboard);
     });
   };
 
