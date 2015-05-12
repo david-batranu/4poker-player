@@ -14,9 +14,9 @@ In order to avoid x-origin issues for the file:// URI scheme a simple Python web
 
 ### Load a game (**path relative to application directory**):
 
-  ```
-  # firefox http://localhost:8080/index.html?path=./games/game1.out
-  ```
+```
+# firefox http://localhost:8080/index.html?path=./games/game1.out
+```
 
 #### Keybindings
 
@@ -46,7 +46,7 @@ The application will helpfully log keys that have not been keybinded into the co
 If opening from a console, you may need to escape the **"**:
 
 ```
-firefox 'http://localhost:8080/index.html?path=./games/game1.out#{"start": 38, "end": 40, "fwd": 39, "back": 37, "score": 87}'
+# firefox 'http://localhost:8080/index.html?path=./games/game1.out#{"start": 38, "end": 40, "fwd": 39, "back": 37, "score": 87}'
 ```
 
 Uses Vectorized Playing Cards.
