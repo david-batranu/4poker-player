@@ -8,9 +8,9 @@ In order to avoid x-origin issues for the file:// URI scheme a simple Python web
 
 ### Start server: 
 
-    ```
-    # python run.py 8080
-    ```
+```
+# python run.py 8080
+```
 
 ### Load a game (**path relative to application directory**):
 
